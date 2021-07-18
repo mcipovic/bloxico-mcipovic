@@ -32,6 +32,8 @@ services:
       - "PORT=5432"
       - "USER=project_user"
       - "DB=project_db"
+    depends_on: 
+      - db
     
 volumes:
   db-data:
