@@ -1,0 +1,44 @@
+version: "3.8"
+services:
+  
+  db:
+    container_name: project_db_server
+    image: postgres
+    restart: always
+    secrets:
+      - db-password
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./sql/create_user.sql:/docker-entrypoint-initdb.d/create_user.sql
+    environment:  
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres-network
+
+  psql-client:
+    container_name: project_client
+    build: psql-client
+    secrets:
+      - user-password
+    command: psql -h ${SERVER} -p ${PORT} -U ${USER} -d ${DB} -f /data.sql
+    networks: 
+      - postgres-network
+    environment:
+      - "PGPASSWORD=/run/secrets/user-password"
+      - "PGPASSWORD=project_pass"
+      - "SERVER=db"
+      - "PORT=5432"
+      - "USER=project_user"
+      - "DB=project_db"
+    
+volumes:
+  db-data:
+secrets:
+  db-password:
+    file: db/password.txt
+  user-password:
+    file: db/userpassword.txt
+networks:
+  postgres-network:
